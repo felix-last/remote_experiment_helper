@@ -1,0 +1,31 @@
+#!/bin/bash
+printf "\nDetermining AWS zone..."
+AWS_AVAILABILITY_ZONE=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)
+AWS_REGION="`echo \"$AWS_AVAILABILITY_ZONE\" | sed 's/[a-z]$//'`"
+printf "\nDone.\n"
+
+# run docker container
+printf "\nStarting experiment docker container...\n"
+nvidia-docker run \
+    -v $HOME/project:/project \
+    -v $HOME/data:/data \
+    -v /var/tmp:/var/tmp \
+    -e AWS_DEFAULT_REGION=$AWS_REGION \
+    $_EXPERIMENT_DOCKER_REPO \
+        python -m remote.remote \
+            --action "_experiment" \
+            --module "$_EXPERIMENT_MODULE" \
+            --bucket "$_EXPERIMENT_S3_BUCKET" \
+            --name "$_EXPERIMENT_NAME" \
+            --log-path "$_EXPERIMENT_LOG_PATH" \
+            --results-path "$_EXPERIMENT_RESULT_PATH" \
+            --instance "$_EXPERIMENT_INSTANCE_ID" \
+            --notify "$_EXPERIMENT_NOTIFICATION_URL" \
+    > docker.log 2>docker.log &
+
+sleep 3
+printf "\nPrinting start up log\n:"
+cat docker.log
+
+printf "\nExiting...\n"
+exit

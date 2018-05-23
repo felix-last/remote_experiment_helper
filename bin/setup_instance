@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# determine AWS region
+printf "\nDetermining AWS zone..."
+AWS_AVAILABILITY_ZONE=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)
+AWS_REGION="`echo \"$AWS_AVAILABILITY_ZONE\" | sed 's/[a-z]$//'`"
+printf "\nDone.\n"
+
+# pull docker image
+printf "\n>>> \$(aws ecr get-login --no-include-email --region \$AWS_REGION)\n"
+$(aws ecr get-login --no-include-email --region $AWS_REGION)
+printf "\n>>> docker pull \$_EXPERIMENT_DOCKER_REPO\n"
+docker pull $_EXPERIMENT_DOCKER_REPO
+
+# pull code
+printf "\n>>> git clone -b \$_EXPERIMENT_GIT_BRANCH \$_EXPERIMENT_GIT_REPO \$HOME/project || cd project && git pull origin \$_EXPERIMENT_GIT_BRANCH\n"
+git clone -b $_EXPERIMENT_GIT_BRANCH $_EXPERIMENT_GIT_REPO $HOME/project || cd project && git pull origin $_EXPERIMENT_GIT_BRANCH
