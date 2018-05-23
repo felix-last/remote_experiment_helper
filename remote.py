@@ -318,7 +318,7 @@ if __name__ == "__main__":
     parser.add_argument('-s', '--bucket', type=str,
                         help='S3 bucket name to upload files to')
     parser.add_argument('--log-path', type=str, default='/var/tmp/experiment.log',
-                        help='Path (inside docker container)')
+                        help='Path (inside docker container) to log to')
     args = parser.parse_args()
     
     remote_experiment = RemoteExperiment(args)
