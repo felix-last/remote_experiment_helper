@@ -23,7 +23,7 @@ nvidia-docker run \
             --notify "$_EXPERIMENT_NOTIFICATION_URL" \
     > docker.log 2>docker.log &
 
-sleep 3
+sleep 10
 printf "\nPrinting start up log\n:"
 cat docker.log
 
