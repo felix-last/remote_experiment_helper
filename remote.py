@@ -49,7 +49,8 @@ class RemoteExperiment(object):
         ('instance', '_EXPERIMENT_INSTANCE_ID'),
         ('module', '_EXPERIMENT_MODULE'),
         ('name', '_EXPERIMENT_NAME'),
-        ('bucket', '_EXPERIMENT_S3_BUCKET')
+        ('bucket', '_EXPERIMENT_S3_BUCKET'),
+        ('afterwards', '_EXPERIMENT_AFTERWARDS')
     ]
 
     def __init__(self, args):
@@ -294,11 +295,15 @@ class RemoteExperiment(object):
             runtime_in_minutes = round(((time.time() - start_time) / 60), 0)
             self.__notify(status, experiment_name, runtime_in_minutes)
             its_time_to_shut_down = runtime_in_minutes > 5
-            if(its_time_to_shut_down):
-                try:
-                    self.terminate_instance()
-                except:
-                    self.__notify('not terminated', experiment_name)
+            if self.args['afterwards'] in ['stop', 'terminate']:
+                if(its_time_to_shut_down):
+                    try:
+                        if self.args['afterwards'] == 'terminate':
+                            self.terminate_instance()
+                        elif self.args['afterwards'] == 'stop':
+                            self.stop_instance()
+                    except:
+                        self.__notify('not terminated', experiment_name)
 
 
 # Command Line Interface
@@ -332,6 +337,8 @@ if __name__ == "__main__":
                         help='S3 bucket name to upload files to')
     parser.add_argument('--log-path', type=str, default='/var/tmp/experiment.log',
                         help='Path (inside docker container) to log to')
+    parser.add_argument('--afterwards', type=str, default='terminate',
+                        help='When done with experiment, what to do with instance (terminate|stop|keep)')
     args = parser.parse_args()
     
     remote_experiment = RemoteExperiment(args)

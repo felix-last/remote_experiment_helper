@@ -21,6 +21,7 @@ nvidia-docker run \
             --results-path "$_EXPERIMENT_RESULT_PATH" \
             --instance "$_EXPERIMENT_INSTANCE_ID" \
             --notify "$_EXPERIMENT_NOTIFICATION_URL" \
+            --afterwards "$_EXPERIMENT_AFTERWARDS" \
     > docker.log 2>docker.log &
 
 sleep 10
