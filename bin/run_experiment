@@ -12,7 +12,7 @@ nvidia-docker run \
     -v /var/tmp:/var/tmp \
     -e AWS_DEFAULT_REGION=$AWS_REGION \
     $_EXPERIMENT_DOCKER_REPO \
-        python -m remote.remote \
+        python -m remote \
             --action "_experiment" \
             --module "$_EXPERIMENT_MODULE" \
             --bucket "$_EXPERIMENT_S3_BUCKET" \
