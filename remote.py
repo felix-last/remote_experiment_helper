@@ -55,6 +55,7 @@ class RemoteExperiment(object):
     def __init__(self, args):
         self.args = deepcopy(vars(args))
         self.instance_id = self.args['instance']
+        self.ip_address = self.args['ip_address']
         self.ec2_connection = self.get_connection()
         
         actions = self.args['action']
@@ -115,6 +116,9 @@ class RemoteExperiment(object):
         )
         self.spot_request_id = response['SpotInstanceRequests'][0]['SpotInstanceRequestId']
         self.instance_id = self.get_instance_from_spot_request(self.spot_request_id)
+        self.ip_address = self.__get_ip_address()
+        print('Successfully created instance {} ({})'.format(
+            self.instance_id, self.ip_address))
         return self.instance_id
 
     def get_instance_from_spot_request(self, spot_request_id, timeout=15):
@@ -176,18 +180,11 @@ class RemoteExperiment(object):
 
     # internal functions
     def __exec_shell_script_via_ssl(self, script, user=None):
-        ec2 = self.ec2_connection or self.get_connection()
-        response = ec2.describe_instances(InstanceIds=[self.instance_id])
-        if not response['Reservations']:
-            raise Exception('Instance {} not found'.format(self.instance_id))
-        try:
-            # try to find private IP address and connect to it
-            connect_to = response['Reservations'][0]['Instances'][0]['PrivateIpAddress']
-        except:
-            # assume self.instance_id to be IP
-            connect_to = self.instance_id
+        ip_address = self.__get_ip_address()
         if user:
-            connect_to = '{0}@{1}'.format(user, connect_to)
+            connect_to = '{0}@{1}'.format(user, ip_address)
+        else:
+            connect_to = ip_address
         environment_variables = self.__set_env_str()
         print('Connecting to {} using ssh'.format(connect_to))
         print('Setting environment variables:')
@@ -250,6 +247,20 @@ class RemoteExperiment(object):
         current_date_time = datetime.utcnow() + timedelta(hours=2, minutes=0)
         return current_date_time.strftime("%Y-%m-%d_%Hh%M")
 
+    def __get_ip_address(self):
+        if not self.ip_address:
+            ec2 = self.ec2_connection or self.get_connection()
+            response = ec2.describe_instances(InstanceIds=[self.instance_id])
+            if not response['Reservations']:
+                raise Exception('Instance {} not found'.format(self.instance_id))
+            try:
+                # try to find private IP address and connect to it
+                self.ip_address = response['Reservations'][0]['Instances'][0]['PrivateIpAddress']
+            except:
+                # assume self.instance_id to be IP
+                self.ip_address = self.instance_id
+        return self.ip_address
+
     def _run_experiment(self, module, s3_bucket, results_path, log_path, experiment_name):
         """
         Executed locally from the instance to run the experiment and shutdown / notify once finished.
@@ -297,6 +308,8 @@ if __name__ == "__main__":
                         help='Which of the available action(s) to perform: create|start|setup|experiment|stop|terminate')
     parser.add_argument('-i', '--instance', type=str,
                         help='ID of an existing AWS instance')
+    parser.add_argument('-ip', '--ip-address', type=str,
+                        help='IP address of an existing AWS instance')
     parser.add_argument('-l', '--launchspec', type=str,
                         help='path to launchSpecfication.json')
     parser.add_argument('-u', '--user', type=str,
