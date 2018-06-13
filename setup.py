@@ -12,7 +12,7 @@ setup(
     scripts=['bin/run_experiment', 'bin/setup_instance'],
     install_requires=[
         'boto3>=1.7, <1.8',
-        'requests>=2.18,<2.19'
+        'requests>=2.18,<2.20'
     ],
     author="Felix Last",
     author_email="mail@felixlast.de",
