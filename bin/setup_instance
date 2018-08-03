@@ -13,6 +13,10 @@ printf "\n>>> docker pull \$_EXPERIMENT_DOCKER_REPO\n"
 docker pull $_EXPERIMENT_DOCKER_REPO
 
 # pull code
+printf "\n>>> git config --global credential.helper '!aws codecommit credential-helper $@'\ngit config --global credential.UseHttpPath true\n"
+git config --global credential.helper '!aws codecommit credential-helper $@'
+git config --global credential.UseHttpPath true
+
 printf "\n>>> git clone -b \$_EXPERIMENT_GIT_BRANCH \$_EXPERIMENT_GIT_REPO \$HOME/project || cd project && git pull origin \$_EXPERIMENT_GIT_BRANCH && git checkout $_EXPERIMENT_GIT_BRANCH\n"
 git clone -b $_EXPERIMENT_GIT_BRANCH $_EXPERIMENT_GIT_REPO $HOME/project || \
     cd project && git pull origin $_EXPERIMENT_GIT_BRANCH \
