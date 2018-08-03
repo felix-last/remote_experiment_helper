@@ -69,6 +69,8 @@ class RemoteExperiment(object):
             assert exists(launch_spec_path), 'Path to launch specification not found'
             self.create_spot_instance(launch_spec_path)
             self.args['instance'] = self.instance_id
+        if 'tag' in actions or self.args['tags']:
+            self.__tag_instance(self.args['tags'])
         if 'start' in actions:
             self.start_instance()
         if 'setup' in actions:
@@ -261,6 +263,18 @@ class RemoteExperiment(object):
                 # assume self.instance_id to be IP
                 self.ip_address = self.instance_id
         return self.ip_address
+    
+    def __tag_instance(self, tags):
+        tags_dict = {}
+        for tag in tags:
+            assert '=' in tag
+            k, v = tag.split('=')
+            tags_dict[k] = v
+        for k, v in tags_dict.items():
+            ec2 = self.ec2_connection or self.get_connection()
+            ec2.create_tags(
+                Tags=[{'Key': k, 'Value': v}], 
+                Resources=[self.instance_id])
 
     def _run_experiment(self, module, s3_bucket, results_path, log_path, experiment_name):
         """
@@ -309,8 +323,8 @@ class RemoteExperiment(object):
 # Command Line Interface
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Manage AWS experiments.')
-    parser.add_argument('-a', '--action', type=str, nargs='+',
-                        help='Which of the available action(s) to perform: create|start|setup|experiment|stop|terminate')
+    parser.add_argument('-a', '--action', type=str, nargs='+', default=[],
+                        help='Which of the available action(s) to perform: create|tag|start|setup|experiment|stop|terminate')
     parser.add_argument('-i', '--instance', type=str,
                         help='ID of an existing AWS instance')
     parser.add_argument('-ip', '--ip-address', type=str,
@@ -335,6 +349,8 @@ if __name__ == "__main__":
                         help='Name of the experiment (S3 key prefix)')
     parser.add_argument('-s', '--bucket', type=str,
                         help='S3 bucket name to upload files to')
+    parser.add_argument('-t', '--tags', type=str, nargs='+',
+                        help='Tag(s) to add to the instance, provided in the form tag=value')
     parser.add_argument('--log-path', type=str, default='/var/tmp/experiment.log',
                         help='Path (inside docker container) to log to')
     parser.add_argument('--afterwards', type=str, default='terminate',
