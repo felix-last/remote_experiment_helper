@@ -221,7 +221,11 @@ class RemoteExperiment(object):
             with tarfile.open(tmp_file_path, mode="w:gz") as f:
                 for file_or_dir in files_to_upload:
                     short_name = join(base_key, basename(normpath(file_or_dir)))
-                    f.add(file_or_dir, arcname=short_name)
+                    try:
+                        f.add(file_or_dir, arcname=short_name)
+                    except OSError:
+                        print('Failed to add {} to archive'.format(file_or_dir))
+                        traceback.print_exc()
             key = base_key + '.tar.gz'
             s3.upload_file(tmp_file_path, Bucket=s3_bucket, Key=key)
         else:
