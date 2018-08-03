@@ -44,6 +44,7 @@ perform.
             --log-path      # Path (inside docker container) to log to (default: /var/tmp/experiment.log)
             --branch        # Git branch to pull from (default: master)
             --name          # Name of the experiment (used as S3 key prefix) (default: completion time in format 'YYYY-MM-DD HHhMM')
+            --tag           # Tag(s) to add to the instance, provided in the form tag=value
 
 Launch Specification
 --------------------
