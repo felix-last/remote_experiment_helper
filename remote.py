@@ -299,7 +299,11 @@ class RemoteExperiment(object):
         try:
             with open(log_path, 'w') as log:
                 with stdout_redirect(log):
-                    importlib.import_module(module)
+                    experiment_module = importlib.import_module(module)
+                    try:
+                        experiment_module.run_experiment()
+                    except AttributeError:
+                        pass
             files_to_upload.append(results_path)
             status = 'completed'
         except:
