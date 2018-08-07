@@ -286,7 +286,7 @@ class RemoteExperiment(object):
         """
         experiment_name = experiment_name if experiment_name else self.__generate_session_id()
         start_time = time.time()
-        files_to_upload = [log_path]
+        files_to_upload = [log_path] + results_path.split(':')
         # assert that log path is writable
         try:
             f = open(log_path, 'w')
@@ -304,7 +304,6 @@ class RemoteExperiment(object):
                         experiment_module.run_experiment()
                     except AttributeError:
                         pass
-            files_to_upload.append(results_path)
             status = 'completed'
         except:
             status = 'error'
@@ -351,8 +350,8 @@ if __name__ == "__main__":
                         help='Git branch to pull from')
     parser.add_argument('-m', '--module', type=str,
                         help='Module to execute on remote server (for run experiment)')
-    parser.add_argument('--results-path', type = str,
-                        help = 'Directory path (inside docker container) to add to the results file')
+    parser.add_argument('--results-path', type=str,
+                        help = 'Directory path(s) (inside docker container) to add to the results archive, separated by colon (:)')
     parser.add_argument('-e', '--name', type=str,
                         help='Name of the experiment (S3 key prefix)')
     parser.add_argument('-s', '--bucket', type=str,
