@@ -11,7 +11,7 @@ setup(
     py_modules=['remote'],
     scripts=['bin/run_experiment', 'bin/setup_instance'],
     install_requires=[
-        'boto3>=1.7,<1.10',
+        'boto3>=1.7,<1.16',
         'requests>=2.18,<2.23'
     ],
     author="Felix Last",
